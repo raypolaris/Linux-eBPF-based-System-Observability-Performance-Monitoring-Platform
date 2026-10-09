@@ -53,3 +53,10 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# generated
+build/
+bpf/vmlinux.h
+compile_commands.json
+*.raw
+*.mp4

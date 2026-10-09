@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm libbpf-dev bpftool pkg-config clang-format
+
+      - name: Check formatting
+        run: clang-format --dry-run --Werror bpf/*.c src/*.c
+
+      - name: Build (vmlinux.h + BPF + userspace)
+        run: make
+
+      - name: Verify artifacts
+        run: ls -l build/ebpf-observatory
