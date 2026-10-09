@@ -15,18 +15,20 @@ struct event {
 
 static volatile sig_atomic_t stop;
 
-static void on_signal(int sig) { (void)sig; stop = 1; }
+static void on_signal(int sig) {
+    (void)sig;
+    stop = 1;
+}
 
-static int on_event(void *ctx, void *data, size_t len)
-{
+static int on_event(void *ctx, void *data, size_t len) {
     const struct event *e = data;
-    (void)ctx; (void)len;
+    (void)ctx;
+    (void)len;
     printf("%-8u %-16s %s\n", e->pid, e->comm, e->fname);
     return 0;
 }
 
-int main(void)
-{
+int main(void) {
     struct openat_bpf *skel;
     struct ring_buffer *rb = NULL;
     int err = 0;
@@ -58,8 +60,14 @@ int main(void)
     printf("PID      COMM             FILENAME\n");
     while (!stop) {
         err = ring_buffer__poll(rb, 100);
-        if (err == -EINTR) { err = 0; break; }
-        if (err < 0) { fprintf(stderr, "poll error: %d\n", err); break; }
+        if (err == -EINTR) {
+            err = 0;
+            break;
+        }
+        if (err < 0) {
+            fprintf(stderr, "poll error: %d\n", err);
+            break;
+        }
     }
 
 cleanup:
