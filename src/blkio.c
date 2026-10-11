@@ -55,6 +55,7 @@ static void print_hist(int map_fd) {
 }
 
 int main(void) {
+    setvbuf(stdout, NULL, _IOLBF, 0);
     struct blkio_bpf *skel;
 
     int err = 0;

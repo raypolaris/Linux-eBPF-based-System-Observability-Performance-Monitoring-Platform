@@ -41,7 +41,7 @@ flowchart LR
 
 - [x] M1 环境打通：vmlinux.h + BPF 编译 + skeleton + 加载运行
 - [x] M2 第一个采集器：openat
-- [ ] M3 块 IO 延迟直方图
+- [x] M3 块 IO 延迟直方图
 - [ ] M4 Prometheus 导出（复用 epoll HTTP 服务）
 - [ ] M5 配置热重载 + 守护进程化
 - [ ] M6 测试、CI、文档、演示
