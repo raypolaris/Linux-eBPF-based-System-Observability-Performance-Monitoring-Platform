@@ -7,7 +7,7 @@ OUT     := build
 BPF_CFLAGS  := -Wno-missing-declarations -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) -I bpf -I /usr/include/$(GLIBC)
 USER_CFLAGS := -g -Wall -Wextra -I $(OUT)
 
-all: $(OUT)/ebpf-observatory
+all: $(OUT)/ebpf-observatory $(OUT)/blkio
 
 bpf/vmlinux.h:
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
@@ -17,6 +17,9 @@ $(OUT)/%.bpf.o: bpf/%.bpf.c bpf/vmlinux.h | $(OUT)
 
 $(OUT)/%.skel.h: $(OUT)/%.bpf.o
 	$(BPFTOOL) gen skeleton $< > $@
+
+$(OUT)/blkio: src/blkio.c $(OUT)/blkio.skel.h | $(OUT)
+	$(CC) $(USER_CFLAGS) -o $@ src/blkio.c -lbpf -lelf -lz
 
 $(OUT)/ebpf-observatory: src/main.c $(OUT)/openat.skel.h | $(OUT)
 	$(CC) $(USER_CFLAGS) -o $@ src/main.c -lbpf -lelf -lz

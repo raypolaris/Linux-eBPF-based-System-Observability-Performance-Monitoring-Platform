@@ -45,3 +45,22 @@ flowchart LR
 - [ ] M4 Prometheus 导出（复用 epoll HTTP 服务）
 - [ ] M5 配置热重载 + 守护进程化
 - [ ] M6 测试、CI、文档、演示
+
+
+## 挂载点选择与验证方法
+
+选采集点不能只看符号表，要分两步验证：
+
+1. **能不能挂？** `sudo bpftrace -l 'kprobe:函数名'`
+   （`/proc/kallsyms` 里有符号也可能被标记 NOKPROBE，挂不上）
+2. **会不会被调用？** 用计数器探针观察：
+   `sudo bpftrace -e 'kprobe:xxx { @c++; }'` + 造负载
+
+### 块 IO 延迟的实测结论（内核 7.0.0-34, VMware SCSI 盘）
+| 候选 | 可挂 | 实际被调用 | 结论 |
+|---|---|---|---|
+| blk_account_io_start | ✘ NOKPROBE | - | 弃用 |
+| blk_mq_start_request  | ✔ | ✔ 63 次 | **起点** |
+| blk_mq_end_request    | ✔ | ✘ 0 次 | 弃用（完成路径不经过它）|
+| blk_mq_complete_request | ✔ | ✔ 63 次 | **终点** |
+| blk_update_request    | ✔ | ✔ 63 次 | 弃用（可能多次调用导致重复计数）|
