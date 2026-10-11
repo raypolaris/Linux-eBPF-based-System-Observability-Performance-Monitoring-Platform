@@ -16,9 +16,11 @@
 - 内核态 **ring buffer** → 用户态实时消费（`BPF_MAP_TYPE_RINGBUF`）
 - 一条 `make` 完成：`vmlinux.h` 生成 → BPF 编译 → skeleton 生成 → 用户态链接
 
+ **块 IO 延迟直方图**：kprobe `blk_mq_start_request` → `blk_mq_complete_request`，
+  内核态 64 桶直方图聚合，每 2 秒打印一次区间分布
 Roadmap：
 
-- [ ] 块 IO 延迟直方图（kprobe `blk_account_io_*`）
+
 - [ ] 调度延迟（`sched_wakeup` → `sched_switch`）
 - [ ] TCP 重传统计（`tcp_retransmit_skb`）
 - [ ] Prometheus `/metrics` 输出
