@@ -10,6 +10,13 @@ struct {
     __type(value, __u64);
 } start SEC(".maps");
 
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __uint(max_entries, 64);
+    __type(key, __u32);
+    __type(value, __u64);
+} hist SEC(".maps");
+
 SEC("kprobe/blk_mq_start_request")
 int BPF_KPROBE(io_start, struct request *req) {
     __u64 t = bpf_ktime_get_ns();
@@ -23,7 +30,13 @@ int BPF_KPROBE(io_end, struct request *rq) {
     if (!t)
         return 0;
     __u64 delta_us = (bpf_ktime_get_ns() - *t) / 1000;
-    bpf_printk("io done: %llu us", delta_us); // 调试用
+    __u32 slot =
+        delta_us ? (63 - __builtin_clzll(delta_us)) : 0; /* 求 floor(log2(值))，libbpf 自带 */
+    if (slot >= 64)
+        slot = 63;
+    __u64 *cnt = bpf_map_lookup_elem(&hist, &slot);
+    if (cnt)
+        __sync_fetch_and_add(cnt, 1);
     bpf_map_delete_elem(&start, &rq);
     return 0;
 }
