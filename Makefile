@@ -7,7 +7,12 @@ OUT     := build
 BPF_CFLAGS  := -Wno-missing-declarations -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) -I bpf -I /usr/include/$(GLIBC)
 USER_CFLAGS := -g -Wall -Wextra -I $(OUT)
 
-all: $(OUT)/ebpf-observatory $(OUT)/blkio
+all: $(OUT)/ebpf-observatory $(OUT)/blkio $(OUT)/test_metrics
+
+
+test: $(OUT)/test_metrics
+	./$(OUT)/test_metrics
+
 
 bpf/vmlinux.h:
 	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
@@ -24,6 +29,11 @@ $(OUT)/blkio: src/blkio.c $(OUT)/blkio.skel.h | $(OUT)
 $(OUT)/ebpf-observatory: src/main.c $(OUT)/openat.skel.h | $(OUT)
 	$(CC) $(USER_CFLAGS) -o $@ src/main.c -lbpf -lelf -lz
 
+
+
+$(OUT)/test_metrics: tests/test_metrics.c src/metrics.c src/metrics.h | $(OUT)
+	$(CC) $(USER_CFLAGS) -I src -o $@ $(TEST_METRICS_SRC) tests/test_metrics.c src/metrics.c
+
 $(OUT):
 	mkdir -p $(OUT)
 
@@ -31,3 +41,4 @@ clean:
 	rm -rf $(OUT) bpf/vmlinux.h
 
 .PHONY: all clean
+.PHONY: all test clean
